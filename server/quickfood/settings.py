@@ -45,7 +45,7 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),
-    "TOKEN_OBTAIN_SERIALIZER": "apps.users.serializers.CustomTokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "apps.authentication.serializers.CustomTokenObtainPairSerializer",
 }
 
 SESSION_COOKIE_SECURE = config('DJANGO_ENV')=='production'
@@ -109,6 +109,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'quickfood.wsgi.application'
 
+AUTH_USER_MODEL ='authentication.User'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
