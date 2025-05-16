@@ -2,19 +2,11 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email, RegexValidator
+from django.core.validators import validate_email
+from shared.utils import phone_regex, validate_image_url
 
 
-phone_regex = RegexValidator(
-    regex=r'^\+?1?\d{9,15}$',
-    message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
-)
-def validate_image_url(value):
-    """
-    Basic validation for image URLs (can be expanded with more specific checks)
-    """
-    if value and not value.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
-        raise ValidationError("URL must point to a valid image (PNG, JPG, WEBP, GIF)")
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **kwargs):
