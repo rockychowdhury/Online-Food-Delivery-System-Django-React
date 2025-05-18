@@ -3,52 +3,80 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+    TokenBlacklistView
+)
 from rest_framework_simplejwt.exceptions import  TokenError
 from .serializers import UserRegistrationSerializer, UserUpdateSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from decouple import config
-
+from django.conf import settings
+from datetime import datetime
 User = get_user_model()
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
-        refresh_token = response.data.get("refresh")
-        # access_token = response.data.get('access')
+        if response.status_code == 200:
+            refresh_token = response.data.get("refresh")
+            access_token = response.data.get('access')
 
-        response.set_cookie(
-            key="refresh_token",
-            value=refresh_token,
-            httponly=True,
-            samesite="None",
-            secure= True,
-            max_age=7*24*60*60, #7days
-        )
-        response.data.pop("refresh",None)
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=access_token,
+                expires=datetime.now() + settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+            )
+
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                value=refresh_token,
+                expires=datetime.now() + settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                path='/user/token/refresh/',
+            )
+        response.data.pop('refresh', None)
+        response.data.pop('access', None)
+        
         return response
 
 
-class CustomTokenRefreshView(APIView):
-    permission_classes = [AllowAny]
+class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if not refresh_token:
-            return Response(
-                {"message": "Refresh token not provided", 'code': 'invalid-refresh-token'},
-                status=401
+        refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+
+        if refresh_token:
+            request.data['refresh'] = refresh_token
+
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            access_token = response.data.get('access')
+            
+            response.set_cookie(
+                key=settings.SIMPLE_JWT['AUTH_COOKIE'],
+                value=access_token,
+                expires=datetime.now() + settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
             )
-        try:
-            token = RefreshToken(refresh_token)
-            access_token = str(token.access_token)
-            return Response({"access": access_token})
-        except TokenError as e:
-            return Response(
-                {"message": str(e), 'code': 'invalid-refresh-token'},
-                status=401
-            )
+            
+            response.data.pop('access', None)
+            
+        return response
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -94,30 +122,34 @@ class UserProfileUpdateView(APIView):
             return Response({'message': 'Profile updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class CustomTokenVerifyView(TokenVerifyView):
+    def post(self, request, *args, **kwargs):
+        token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        if token:
+            request.data['token'] = token
+        else:
+            return Response({"error": "Token not provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class LogoutView(APIView):
-    permission_classes = [AllowAny]
-    def post(self, request):
         try:
-            refresh_token = request.COOKIES.get('refresh_token')
-            if not refresh_token:
-                response = Response({"message": "Logout successful"}, status=200)
-                response.delete_cookie("refresh_token", samesite="None")
-                return response
-
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            except Exception as e:
-                return Response({"error": "Invalid or expired token"}, status=400)
-
-            response = Response({"message": "Logout successful"}, status=200)
-            response.delete_cookie("refresh_token", samesite="None")
+            response = super().post(request, *args, **kwargs)
             return response
+        except TokenError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=400)
+class LogoutView(TokenBlacklistView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        
+        if refresh_token:
+            request.data['refresh'] = refresh_token
+        
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 200:
+            response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'],path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'])
+            response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],path='/user/token/refresh/')
+            
+        return response
 
 
 class PasswordChangeView(APIView):
