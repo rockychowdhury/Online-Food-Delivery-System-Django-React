@@ -1,0 +1,1 @@
+This is a project based on Django Rest Framework and React Js named QuickFood which is a online food delivery system.
