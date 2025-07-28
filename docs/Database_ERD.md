@@ -2,9 +2,8 @@
 
 ## 📊 Entity Relationship Diagram
 
-![Online Food Delivery System ERD](https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/assets/quickfood-erd.png?raw=true)
+![Online Food Delivery System ERD](https://miro.com/app/board/uXjVLyG5xjs=/?focusWidget=3458764635736975836?raw=true)
 
-*Click the image to view full size. If the image doesn't load, please check the [assets folder](../docs/assets/)*
 
 ## 🎯 Database Overview
 
