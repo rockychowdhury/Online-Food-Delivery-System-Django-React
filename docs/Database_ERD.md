@@ -58,6 +58,9 @@
 </div>
 ![Alt text](https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/assets/ERD.jpg)
 ```
+<div align="center">
+  <img src="https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/assets/ERD.jpg?raw=true" alt="Online Food Delivery System ERD" width="800">
+</div>
 
 ## 🛠️ Schema Technologies
 
