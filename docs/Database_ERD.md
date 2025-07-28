@@ -52,12 +52,6 @@
 
 ## 🏗️ Visual Schema Structure
 
-```
-<div align="center">
-  <img src="docs/assets/ERD.jpg.jpg" alt="ERD Diagram" width="700">
-</div>
-![Alt text](https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/assets/ERD.jpg)
-```
 <div align="center">
   <img src="https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/assets/ERD.jpg?raw=true" alt="Online Food Delivery System ERD" width="800">
 </div>
