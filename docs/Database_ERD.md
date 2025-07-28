@@ -60,7 +60,7 @@
 
 - **Database**: PostgreSQL (Production), SQLite (Dev)
 - **ORM**: Django ORM
-- **Design Tools**: dbdiagram.io, Eraser.io
+- **Design Tools**: miro
 
 ## 📁 Repository References
 
