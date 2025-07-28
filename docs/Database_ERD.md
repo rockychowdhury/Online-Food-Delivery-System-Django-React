@@ -2,8 +2,9 @@
 
 ## 📊 Entity Relationship Diagram
 
-![Online Food Delivery System ERD](https://miro.com/app/board/uXjVLyG5xjs=/?focusWidget=3458764635736975836?raw=true)
+🔗 **[Online Food Delivery System ERD on Miro](https://miro.com/app/live-embed/uXjVLyG5xjs=/?focusWidget=3458764635736975836&embedMode=view_only_without_ui&embedId=49129292471)**
 
+*Click the link above to explore the interactive database schema*
 
 ## 🎯 Database Overview
 
