@@ -1,4 +1,5 @@
-# 🍽️ QuickFood - Online Food Delivery System  
+# 🍽️ QuickFood - Online Food Delivery System - Feature List
+
 ## 📋 Feature List & Requirements Analysis (Waterfall Phase 1)
 
 ### 🔍 Project Overview  

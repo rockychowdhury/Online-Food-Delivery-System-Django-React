@@ -66,7 +66,7 @@
 
 | File                        | Purpose                          |
 |-----------------------------|----------------------------------|
-| `database_schema.json`      | Full schema definition           |
+| `assets/db_schema.json`     | Full schema definition           |
 | `apps/*/models.py`          | Django model declarations        |
 | `apps/*/migrations/`        | Database migration files         |
 
