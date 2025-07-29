@@ -15,6 +15,7 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 - **BranchManager** 🧑‍💼  
 - **Customer** 🧑‍🦱  
 - **DeliveryPerson** 🚴
+🔗 **[View role based permissions](https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/Role_Based_Permission.md)**
 
 ### 🔑 1.2 Authentication Features  
 - Custom user model with email 📧  
@@ -94,7 +95,6 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 ### 📄 5.2 Invoice Management  
 - Auto PDF invoices 🧾  
 - Email delivery ✉️  
-- Tax calculation & history 📊  
 
 ---
 
@@ -169,13 +169,17 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 
 - **Django** 🐍 – Backend  
 - **Django REST Framework** 🔗 – APIs  
+- **JWT with Cookie** 🛡️ – Authentication
+- **RBAC** ✅ – Authorization
 - **Celery + Redis** 🕹️ – Background tasks  
 - **PostgreSQL** 🛢️ – Database with full-text search  
-- **Stripe SDK** 💳 – Payments  
+- **Stripe SDK / sslcommerz** 💳 – Payments  
 - **PDFKit/wkhtmltopdf** 📄 – Invoicing  
 - **Django Channels** 📡 – WebSockets (optional)  
-- **React** ⚛️ – Admin Dashboard (optional)  
-
+- **React** ⚛️ – Client Site
+- **Docker** 📦 – containerization  
+- **Nginx** 🌐 – Proxy and Loadbalance
+- **GeoDjango** 🗺 – Geo Location and routes searching 
 ---
 
 ## ✅ Success Criteria
