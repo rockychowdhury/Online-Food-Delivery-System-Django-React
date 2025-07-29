@@ -1,4 +1,4 @@
-# 🛡️ QuickFood - Role-Based Access Control (RBAC)
+# 🛡️ QuickFood - Role-Based Permissions - Waterfall phase 1
 
 A clear breakdown of permissions and responsibilities for each role in the QuickFood platform.
 

@@ -14,7 +14,8 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 - **RestaurantOwner** 👨‍🍳  
 - **BranchManager** 🧑‍💼  
 - **Customer** 🧑‍🦱  
-- **DeliveryPerson** 🚴
+- **DeliveryPerson** 🚴  
+
 🔗 **[View role based permissions](https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/Role_Based_Permission.md)**
 
 ### 🔑 1.2 Authentication Features  
