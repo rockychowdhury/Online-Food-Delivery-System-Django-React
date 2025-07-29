@@ -1,0 +1,1038 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuickFood Database Schema",
+  "description": "Complete database schema for QuickFood application with all tables and relationships",
+  "type": "object",
+  "database": {
+    "name": "quickfood_db",
+    "engine": "postgresql",
+    "version": "14+"
+  },
+  "tables": [
+    {
+      "name": "User",
+      "description": "Users table for customers, restaurant owners, and managers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique user identifier"
+        },
+        {
+          "name": "username",
+          "type": "VARCHAR(100)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Unique username"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(100)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "User email address"
+        },
+        {
+          "name": "password",
+          "type": "VARCHAR(255)",
+          "constraints": ["NOT NULL"],
+          "description": "Encrypted password"
+        },
+        {
+          "name": "role",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "role IN ('customer', 'restaurant_owner', 'branch_manager', 'admin')",
+          "description": "User role type"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Account creation timestamp"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_user_email",
+          "columns": ["email"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_user_username",
+          "columns": ["username"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Location",
+      "description": "Physical locations for restaurant branches",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique location identifier"
+        },
+        {
+          "name": "address_line",
+          "type": "TEXT",
+          "constraints": ["NOT NULL"],
+          "description": "Full address"
+        },
+        {
+          "name": "city",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "City name"
+        },
+        {
+          "name": "postal_code",
+          "type": "VARCHAR(20)",
+          "description": "Postal/ZIP code"
+        },
+        {
+          "name": "latitude",
+          "type": "DECIMAL(9,6)",
+          "description": "GPS latitude coordinate"
+        },
+        {
+          "name": "longitude",
+          "type": "DECIMAL(9,6)",
+          "description": "GPS longitude coordinate"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_location_city",
+          "columns": ["city"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_location_coords",
+          "columns": ["latitude", "longitude"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Address",
+      "description": "User delivery addresses",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique address identifier"
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "User(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to user"
+        },
+        {
+          "name": "address_line",
+          "type": "TEXT",
+          "constraints": ["NOT NULL"],
+          "description": "Full address"
+        },
+        {
+          "name": "city",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "City name"
+        },
+        {
+          "name": "postal_code",
+          "type": "VARCHAR(20)",
+          "description": "Postal/ZIP code"
+        },
+        {
+          "name": "latitude",
+          "type": "DECIMAL(9,6)",
+          "description": "GPS latitude coordinate"
+        },
+        {
+          "name": "longitude",
+          "type": "DECIMAL(9,6)",
+          "description": "GPS longitude coordinate"
+        },
+        {
+          "name": "is_default",
+          "type": "BOOLEAN",
+          "default": "FALSE",
+          "description": "Default delivery address flag"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_address_user",
+          "columns": ["user_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Restaurant",
+      "description": "Restaurant information",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique restaurant identifier"
+        },
+        {
+          "name": "owner_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "User(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to restaurant owner"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "Restaurant name"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "description": "Restaurant description"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Restaurant creation timestamp"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_restaurant_owner",
+          "columns": ["owner_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_restaurant_name",
+          "columns": ["name"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Branch",
+      "description": "Restaurant branches",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique branch identifier"
+        },
+        {
+          "name": "restaurant_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "Restaurant(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to restaurant"
+        },
+        {
+          "name": "location_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL", "UNIQUE"],
+          "foreign_key": {
+            "references": "Location(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to location (1:1)"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "Branch name"
+        },
+        {
+          "name": "manager_id",
+          "type": "INTEGER",
+          "foreign_key": {
+            "references": "User(id)",
+            "on_delete": "SET NULL"
+          },
+          "description": "Reference to branch manager"
+        },
+        {
+          "name": "opening_time",
+          "type": "TIME",
+          "constraints": ["NOT NULL"],
+          "description": "Branch opening time"
+        },
+        {
+          "name": "closing_time",
+          "type": "TIME",
+          "constraints": ["NOT NULL"],
+          "description": "Branch closing time"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "default": "TRUE",
+          "description": "Branch active status"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(100)",
+          "description": "Branch contact email"
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(20)",
+          "description": "Branch contact phone"
+        }
+      ],
+      "check_constraints": [
+        {
+          "name": "valid_hours",
+          "condition": "opening_time < closing_time"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_branch_restaurant",
+          "columns": ["restaurant_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_branch_location",
+          "columns": ["location_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_branch_manager",
+          "columns": ["manager_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Cuisines",
+      "description": "Available cuisine types",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique cuisine identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "constraints": ["UNIQUE", "NOT NULL"],
+          "description": "Cuisine name"
+        }
+      ],
+      "initial_data": [
+        {"name": "Italian"},
+        {"name": "Chinese"},
+        {"name": "Indian"},
+        {"name": "Mexican"},
+        {"name": "American"},
+        {"name": "Thai"},
+        {"name": "Japanese"},
+        {"name": "Mediterranean"},
+        {"name": "French"},
+        {"name": "Korean"}
+      ]
+    },
+    {
+      "name": "FoodItem",
+      "description": "Food items available in restaurants",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique food item identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "Food item name"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "description": "Food item description"
+        },
+        {
+          "name": "price",
+          "type": "DECIMAL(10,2)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "price > 0",
+          "description": "Food item price"
+        },
+        {
+          "name": "available",
+          "type": "BOOLEAN",
+          "default": "TRUE",
+          "description": "Availability status"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Item creation timestamp"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_fooditem_name",
+          "columns": ["name"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_fooditem_available",
+          "columns": ["available"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Menu",
+      "description": "Restaurant branch menus",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique menu identifier"
+        },
+        {
+          "name": "branch_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "Branch(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to branch"
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(100)",
+          "constraints": ["NOT NULL"],
+          "description": "Menu title"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "default": "TRUE",
+          "description": "Menu active status"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_menu_branch",
+          "columns": ["branch_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Menu_FoodItem",
+      "description": "Junction table for Menu-FoodItem many-to-many relationship",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique junction identifier"
+        },
+        {
+          "name": "menu_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "Menu(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to menu"
+        },
+        {
+          "name": "fooditem_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "FoodItem(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to food item"
+        }
+      ],
+      "unique_constraints": [
+        {
+          "name": "unique_menu_fooditem",
+          "columns": ["menu_id", "fooditem_id"]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_menu_fooditem_menu",
+          "columns": ["menu_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_menu_fooditem_food",
+          "columns": ["fooditem_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "FoodItem_Cuisine",
+      "description": "Junction table for FoodItem-Cuisine many-to-many relationship",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique junction identifier"
+        },
+        {
+          "name": "fooditem_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "FoodItem(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to food item"
+        },
+        {
+          "name": "cuisine_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "Cuisines(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to cuisine"
+        }
+      ],
+      "unique_constraints": [
+        {
+          "name": "unique_fooditem_cuisine",
+          "columns": ["fooditem_id", "cuisine_id"]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_fooditem_cuisine_food",
+          "columns": ["fooditem_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_fooditem_cuisine_cuisine",
+          "columns": ["cuisine_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Rating",
+      "description": "Customer ratings for food items",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique rating identifier"
+        },
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "User(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to customer"
+        },
+        {
+          "name": "fooditem_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "FoodItem(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to food item"
+        },
+        {
+          "name": "rating",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "rating >= 1 AND rating <= 5",
+          "description": "Rating value (1-5)"
+        },
+        {
+          "name": "review",
+          "type": "TEXT",
+          "description": "Customer review text"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Rating creation timestamp"
+        }
+      ],
+      "unique_constraints": [
+        {
+          "name": "unique_customer_fooditem_rating",
+          "columns": ["customer_id", "fooditem_id"]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_rating_customer",
+          "columns": ["customer_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_rating_fooditem",
+          "columns": ["fooditem_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_rating_value",
+          "columns": ["rating"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "OrderItem",
+      "description": "Individual items in an order",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique order item identifier"
+        },
+        {
+          "name": "fooditem_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "FoodItem(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to food item"
+        },
+        {
+          "name": "quantity",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "quantity > 0",
+          "description": "Item quantity"
+        },
+        {
+          "name": "unit_price",
+          "type": "DECIMAL(10,2)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "unit_price > 0",
+          "description": "Price per unit at time of order"
+        },
+        {
+          "name": "total_price",
+          "type": "DECIMAL(10,2)",
+          "generated": "ALWAYS AS (quantity * unit_price) STORED",
+          "description": "Total price for this item"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_orderitem_fooditem",
+          "columns": ["fooditem_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "OrderGroup",
+      "description": "Customer order groups",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique order group identifier"
+        },
+        {
+          "name": "customer_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "User(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to customer"
+        },
+        {
+          "name": "branch_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "Branch(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to branch"
+        },
+        {
+          "name": "delivery_address_id",
+          "type": "INTEGER",
+          "foreign_key": {
+            "references": "Address(id)",
+            "on_delete": "SET NULL"
+          },
+          "description": "Reference to delivery address"
+        },
+        {
+          "name": "order_type",
+          "type": "VARCHAR(20)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "order_type IN ('delivery', 'pickup', 'dine_in')",
+          "description": "Type of order"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "default": "pending",
+          "check_constraint": "status IN ('pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled')",
+          "description": "Order status"
+        },
+        {
+          "name": "total_amount",
+          "type": "DECIMAL(10,2)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "total_amount >= 0",
+          "description": "Total order amount"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Order creation timestamp"
+        },
+        {
+          "name": "confirmed_at",
+          "type": "TIMESTAMP",
+          "description": "Order confirmation timestamp"
+        },
+        {
+          "name": "delivered_at",
+          "type": "TIMESTAMP",
+          "description": "Order delivery timestamp"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_ordergroup_customer",
+          "columns": ["customer_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_ordergroup_branch",
+          "columns": ["branch_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_ordergroup_status",
+          "columns": ["status"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_ordergroup_created",
+          "columns": ["created_at"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "description": "Junction table linking order groups to order items",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique order identifier"
+        },
+        {
+          "name": "order_group_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "OrderGroup(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to order group"
+        },
+        {
+          "name": "order_item_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL"],
+          "foreign_key": {
+            "references": "OrderItem(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to order item"
+        },
+        {
+          "name": "prepared_at",
+          "type": "TIMESTAMP",
+          "description": "Item preparation timestamp"
+        }
+      ],
+      "unique_constraints": [
+        {
+          "name": "unique_ordergroup_orderitem",
+          "columns": ["order_group_id", "order_item_id"]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_orders_ordergroup",
+          "columns": ["order_group_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_orders_orderitem",
+          "columns": ["order_item_id"],
+          "type": "btree"
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": "Payment records for orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "constraints": ["PRIMARY KEY"],
+          "description": "Unique payment identifier"
+        },
+        {
+          "name": "order_group_id",
+          "type": "INTEGER",
+          "constraints": ["NOT NULL", "UNIQUE"],
+          "foreign_key": {
+            "references": "OrderGroup(id)",
+            "on_delete": "CASCADE"
+          },
+          "description": "Reference to order group (1:1)"
+        },
+        {
+          "name": "amount",
+          "type": "DECIMAL(10,2)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "amount > 0",
+          "description": "Payment amount"
+        },
+        {
+          "name": "payment_method",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "check_constraint": "payment_method IN ('cash', 'card', 'mobile', 'online')",
+          "description": "Payment method"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(50)",
+          "constraints": ["NOT NULL"],
+          "default": "pending",
+          "check_constraint": "status IN ('pending', 'completed', 'failed', 'refunded')",
+          "description": "Payment status"
+        },
+        {
+          "name": "transaction_id",
+          "type": "VARCHAR(100)",
+          "description": "External transaction ID"
+        },
+        {
+          "name": "paid_at",
+          "type": "TIMESTAMP",
+          "description": "Payment completion timestamp"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Payment record creation timestamp"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "idx_payment_ordergroup",
+          "columns": ["order_group_id"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_payment_status",
+          "columns": ["status"],
+          "type": "btree"
+        },
+        {
+          "name": "idx_payment_method",
+          "columns": ["payment_method"],
+          "type": "btree"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "type": "one_to_many",
+      "parent": "Restaurant",
+      "child": "Branch",
+      "description": "Restaurant has many branches"
+    },
+    {
+      "type": "one_to_one",
+      "parent": "Location",
+      "child": "Branch",
+      "description": "Location has one branch"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "Branch",
+      "child": "Menu",
+      "description": "Branch has many menus"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "Branch",
+      "child": "OrderGroup",
+      "description": "Branch processes many order groups"
+    },
+    {
+      "type": "many_to_many",
+      "parent": "Menu",
+      "child": "FoodItem",
+      "junction_table": "Menu_FoodItem",
+      "description": "Menu contains many food items, food items can be in many menus"
+    },
+    {
+      "type": "many_to_many",
+      "parent": "FoodItem",
+      "child": "Cuisines",
+      "junction_table": "FoodItem_Cuisine",
+      "description": "Food item can have many cuisines, cuisines can have many food items"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "FoodItem",
+      "child": "Rating",
+      "description": "Food item can have many ratings"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "User",
+      "child": "Rating",
+      "description": "Customer can give many ratings"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "FoodItem",
+      "child": "OrderItem",
+      "description": "Food item can be in many order items"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "OrderGroup",
+      "child": "Orders",
+      "description": "Order group contains many orders"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "OrderItem",
+      "child": "Orders",
+      "description": "Order item can be in many orders"
+    },
+    {
+      "type": "one_to_one",
+      "parent": "OrderGroup",
+      "child": "Payments",
+      "description": "Order group has one payment"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "Address",
+      "child": "OrderGroup",
+      "description": "Address can be used for many order groups"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "User",
+      "child": "OrderGroup",
+      "description": "Customer can have many order groups"
+    },
+    {
+      "type": "one_to_many",
+      "parent": "User",
+      "child": "Address",
+      "description": "Customer can have many addresses"
+    }
+  ],
+  "creation_order": [
+    "User",
+    "Location", 
+    "Address",
+    "Restaurant",
+    "Branch",
+    "Cuisines",
+    "FoodItem",
+    "Menu",
+    "Menu_FoodItem",
+    "FoodItem_Cuisine",
+    "Rating",
+    "OrderItem",
+    "OrderGroup",
+    "Orders",
+    "Payments"
+  ],
+  "drop_order": [
+    "Payments",
+    "Orders",
+    "OrderGroup",
+    "OrderItem",
+    "Rating",
+    "FoodItem_Cuisine",
+    "Menu_FoodItem",
+    "Menu",
+    "FoodItem",
+    "Cuisines",
+    "Branch",
+    "Address",
+    "Restaurant",
+    "Location",
+    "User"
+  ]
+}
