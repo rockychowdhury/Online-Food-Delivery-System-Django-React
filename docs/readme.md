@@ -23,8 +23,6 @@ QuickFood/
 │   │   ├── wsgi.py
 │   │   └── asgi.py
 │   │
-│   ├── env/ #python virtual env
-│   ├── .env
 │   ├── Dockerfile
 │   ├── manage.py
 │   └── requirements.txt
@@ -34,7 +32,6 @@ QuickFood/
 │   ├── api-documentation.md
 │   ├── features-list.md
 │   ├── role-based-permissions.md
-│   ├── tech-stack.md
 │   ├── database-erd.md
 │   └── readme.md
 ├── .env.example
