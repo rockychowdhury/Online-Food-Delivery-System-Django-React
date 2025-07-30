@@ -1,6 +1,10 @@
-This is a project based on Django Rest Framework and React Js named QuickFood which is a online food delivery system.
+# 🍽️ QuickFood - Online Food Delivery System
 
-Project Structure:
+QuickFood is a comprehensive online food delivery platform that connects customers with restaurants through a multi-role system supporting restaurant owners, branch managers, delivery personnel, and customers.
+
+## Project Structure
+
+```
 QuickFood/
 ├── backend/
 │   ├── apps/
@@ -27,7 +31,7 @@ QuickFood/
 │   ├── manage.py
 │   └── requirements.txt
 │
-├── frontend/ #react client site 
+├── frontend/ # React client application
 ├── docs/
 │   ├── api-documentation.md
 │   ├── features-list.md
@@ -36,3 +40,22 @@ QuickFood/
 │   └── readme.md
 ├── .env.example
 └── .gitignore
+```
+
+## Features
+
+- User authentication and authorization
+- Restaurant browsing and menu management
+- Order placement and tracking
+- Secure payment processing
+- Rating and review system
+- Responsive React frontend
+
+## Documentation
+
+Detailed documentation is available in the [docs/](docs/) directory:
+
+- [API Documentation](docs/api-documentation.md)
+- [Features List](docs/features-list.md)
+- [Role-Based Permissions](docs/role-based-permissions.md)
+- [Database ERD](docs/database-erd.md)
