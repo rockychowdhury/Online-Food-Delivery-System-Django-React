@@ -55,7 +55,7 @@ A clear breakdown of permissions and responsibilities for each role in the Quick
 ### 🧑‍💼 Restaurant Owner
 | Resource       | Create | Read | Update | Delete | Special Privileges |
 |----------------|--------|------|--------|--------|--------------------|
-| Restaurant     | ❌     | 🔍   | ✅     | ❌     | Branding management |
+| Restaurant     | ⚠️     | 🔍   | ⚠️     | ❌     | Branding management |
 | Branch         | ✅     | ✅   | ✅     | ✅     | Expansion & operation control |
 | Menu           | ✅     | ✅   | ✅     | ✅     | Menu lifecycle management |
 | Food Items     | ✅     | ✅   | ✅     | ✅     | Price & availability control |
@@ -74,7 +74,7 @@ A clear breakdown of permissions and responsibilities for each role in the Quick
 | Branch         | ❌     | 🔍   | ⚠️     | ❌     | Operational reports |
 | Menu           | ✅     | ✅   | ✅     | ✅     | Daily specials management |
 | Food Items     | ✅     | ✅   | ⚠️     | ⚠️     | Stock level control |
-| Orders         | ❌     | ✅   | ✅     | ❌     | Kitchen order flow |
+| Orders         | ❌     | ✅   | ⚠️     | ❌     | Kitchen order flow |
 
 **📋 Responsibilities**:
 - Staff shift & supplier coordination
@@ -101,7 +101,7 @@ A clear breakdown of permissions and responsibilities for each role in the Quick
 ### 🧑‍🍽️ Customer
 | Resource       | Create | Read | Update | Delete | Special Privileges |
 |----------------|--------|------|--------|--------|--------------------|
-| Address        | ✅     | ✅   | ✅     | ✅     | Location-based service |
+| Address        | ✅     | ✅   | ⚠️     | ✅     | Location-based service |
 | Orders         | ✅     | ✅   | ⚠️     | ❌     | Reorder, track history |
 | Ratings        | ✅     | ✅   | ✅     | ✅     | Verified reviews only |
 
@@ -115,7 +115,7 @@ A clear breakdown of permissions and responsibilities for each role in the Quick
 ### 🛵 Delivery Partner
 | Resource       | Create | Read | Update | Delete | Special Privileges |
 |----------------|--------|------|--------|--------|--------------------|
-| Orders         | ❌     | ⚠️   | ✅     | ❌     | Live tracking updates |
+| Orders         | ❌     | ⚠️   | ⚠️     | ❌     | Live tracking updates |
 
 **🚚 Tools**:
 - Route optimization & delivery status
