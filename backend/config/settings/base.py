@@ -31,11 +31,22 @@ LOCAL_APPS = [
     'apps.payments',
     'apps.ratings',
     'apps.common',
+    'apps.locations',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-#AUTH_USER_MODEL = 'accounts.User' # Custom user model
+AUTH_USER_MODEL = 'accounts.User' # Custom user model
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'apps.accounts.authentication.JWTCookieAuthentication',
+    ],
+}
+# JWT Configuration
+JWT_ACCESS_TOKEN_LIFETIME = 15  # minutes
+JWT_REFRESH_TOKEN_LIFETIME = 7  # days
+
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -46,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "apps.accounts.middleware.CookieRefreshMiddleware",
 ]
 
 ROOT_URLCONF = 'config.urls'
