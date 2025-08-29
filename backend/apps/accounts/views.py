@@ -109,7 +109,6 @@ class ProfileView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'phone': user.phone,
-            'is_verified': user.is_verified,
             'role': {
                 'name': active_role.role.name,
                 'display_name': active_role.role.display_name,
@@ -132,18 +131,25 @@ class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
     def post(self, request, *args, **kwargs):
         serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            response_data = {
-                "message": "User created successfully",
-                "user": {
-                    "id": user.id,
-                    "email": user.email
-                },
-            }
-            return Response(response_data, status=status.HTTP_201_CREATED)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = serializer.save()
+        except Exception as e:
+            return Response(
+                {"detail": "An error occurred during user creation. Please try again later."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        response_data = {
+            "message": "User created successfully.",
+            "user": {
+                "id": user.id,
+                "email": user.email
+            },
+        }
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 class PasswordChangeView(APIView):
