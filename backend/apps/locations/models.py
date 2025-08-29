@@ -84,3 +84,15 @@ class UserAddress(models.Model):
     address_type            = models.CharField(max_length=10, choices=AddressType.choices, default='home')
     is_active               = models.BooleanField(default=True)
     is_default              = models.BooleanField(default=False)
+    created_at              = models.DateTimeField(auto_now_add=True)
+    updated_at              = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'user_addresses'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=models.Q(is_default=True, is_active=True),
+                name='unique_default_address_per_user'
+            )
+        ]

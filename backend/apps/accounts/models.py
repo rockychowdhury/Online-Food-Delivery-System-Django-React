@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.core.validators import RegexValidator, validate_email
-from .managers import UserManager,UserRoleManager, AddressManager
+from .managers import UserManager,UserRoleManager
 import uuid
 from django.conf import settings
 

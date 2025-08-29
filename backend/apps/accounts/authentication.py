@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-
+from django.contrib.auth import get_user_model
 
 class JWTCookieAuthentication(BaseAuthentication):
     """Custom JWT authentication using cookies"""
@@ -26,7 +26,7 @@ class JWTCookieAuthentication(BaseAuthentication):
                 settings.SECRET_KEY,
                 algorithms=['HS256']
             )
-            User = settings.AUTH_USER_MODEL
+            User = get_user_model()
             user = User.objects.get(id=payload['user_id'])
             
             if not user.is_active:
@@ -60,7 +60,7 @@ class JWTCookieAuthentication(BaseAuthentication):
                 algorithms=['HS256']
             )
             
-            User = settings.AUTH_USER_MODEL
+            User = get_user_model()
             user = User.objects.get(id=refresh_payload['user_id'])
             
             if not user.is_active:
@@ -170,7 +170,7 @@ class AuthenticationService:
             if payload.get('type') != token_type:
                 return None, "Invalid token type"
                 
-            User = settings.AUTH_USER_MODEL
+            User = get_user_model()
             user = User.objects.get(id=payload['user_id'])
             
             if not user.is_active:
