@@ -1,12 +1,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.core.validators import RegexValidator, validate_email
+from django.core.validators import validate_email
 from .managers import UserManager,UserRoleManager
-import uuid
 from django.conf import settings
 from apps.common.mixins import BaseModel, UUIDMixin, TimestampMixin
 from apps.common.utils.validators import phone_regex_validator
+from django.contrib.auth import get_user_model
 
+USER = get_user_model()
 
 class User(AbstractUser, UUIDMixin, TimestampMixin):
     """Custom user model with email as username field"""
@@ -92,7 +93,7 @@ class Role(BaseModel):
 class UserRole(BaseModel):
     """User role assignment model"""
 
-    user                    = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_roles')
+    user                    = models.ForeignKey(USER, on_delete=models.CASCADE, related_name='user_roles')
     role                    = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     assigned_at             = models.DateTimeField(auto_now_add=True)
