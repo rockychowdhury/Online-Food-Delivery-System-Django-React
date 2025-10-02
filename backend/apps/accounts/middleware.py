@@ -1,5 +1,7 @@
-# middleware.py - Cookie refresh middleware
+import logging
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 class CookieRefreshMiddleware:
     """Middleware to handle automatic token refresh"""
@@ -12,6 +14,7 @@ class CookieRefreshMiddleware:
         
         # If a new access token was generated during authentication
         if hasattr(request, '_new_access_token'):
+            logger.debug("Setting new access token in cookie")
             response.set_cookie(
                 'access_token',
                 request._new_access_token,
