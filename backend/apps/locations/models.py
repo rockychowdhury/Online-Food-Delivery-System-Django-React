@@ -1,10 +1,13 @@
 from django.db import models
+from apps.common.mixins import BaseModel
 from .managers import AddressManager
-import uuid
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
-class Country(models.Model):
-    id                      = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+User = get_user_model()
+
+class Country(BaseModel):
+    """Country model for address management"""
     country_name            = models.CharField(max_length=100, unique=True)
     country_code            = models.CharField(max_length=10, unique=True)
 
@@ -12,31 +15,30 @@ class Country(models.Model):
         db_table = "countries"
         verbose_name = "Country"
         verbose_name_plural = "Countries"
-    
+
+        indexes = [
+            models.Index(fields=['country_code'], name='country_code_idx'),
+        ]
     def __str__(self):
         return f"{self.country_name} ({self.country_code})"
 
-class Address(models.Model):
-    """User address model"""
-    id                      = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Address(BaseModel):
+    """Address model for location management"""
 
     street_address          = models.CharField(max_length=255)
     apartment_number        = models.CharField(max_length=50, blank=True)
 
-    city                    = models.CharField(max_length=100)
+    city                    = models.CharField(max_length=100, db_index=True)
     state                   = models.CharField(max_length=100)
     postal_code             = models.CharField(max_length=20)
-    country                 = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='addresses')
+    country                 = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='addresses')
     
     # Location coordinates
-    latitude                = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude               = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    latitude                = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,help_text="Latitude coordinate for precise location")
+    longitude               = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,help_text="Latitude coordinate for precise location")
     
     # Additional fields
-    delivery_instructions   = models.TextField(blank=True)
-
-    created_at              = models.DateTimeField(auto_now_add=True)
-    updated_at              = models.DateTimeField(auto_now=True)
+    delivery_instructions   = models.TextField(blank=True, help_text="Special delivery instructions  this address")
 
     objects = AddressManager()
     
@@ -44,55 +46,81 @@ class Address(models.Model):
         db_table = 'addresses'
         verbose_name = 'Address'
         verbose_name_plural = 'Addresses'
-    
+        indexes = [
+            models.Index(fields=['city', 'state'], name='address_city_state_idx'),
+            models.Index(fields=['postal_code'], name='address_postal_code_idx'),
+        ]
     def __str__(self):
         return self.full_address
     
     @property
     def full_address(self):
-        """Return full address"""
-        address_lines = []
-    
-        # Street address line
+        """Return formatted full address"""
+        address_parts = []
+        
+        # Street address
         street_line = self.street_address
         if self.apartment_number:
-            street_line += f", {self.apartment_number}"
-        address_lines.append(street_line)
-    
-        # City/State/Zip line
+            street_line += f", Apt {self.apartment_number}"
+        address_parts.append(street_line)
+        
+        # City, State Postal Code
         locality_line = f"{self.city}, {self.state}"
         if self.postal_code:
             locality_line += f" {self.postal_code}"
-        address_lines.append(locality_line)
+        address_parts.append(locality_line)
         
-        if hasattr(self.country, 'country_name'):
-            country_name = self.country.country_name
-            address_lines.append(country_name)
-        return ', '.join(address_lines)
+        # Country
+        if self.country:
+            address_parts.append(self.country.country_name)
+        
+        return ', '.join(address_parts)
 
-class UserAddress(models.Model):
+class UserAddress(BaseModel):
     """Mapping between users and their addresses"""
+
     class AddressType(models.TextChoices):
         HOME                = 'home', 'Home'
         WORK                = 'work', 'Work'
         OTHER               = 'other', 'Other'
 
-
-    id                      = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user                    = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='addresses')
+    user                    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     address                 = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='user_addresses')
-    address_type            = models.CharField(max_length=10, choices=AddressType.choices, default='home')
-    is_active               = models.BooleanField(default=True)
+    address_type            = models.CharField(max_length=10, choices=AddressType.choices, default=AddressType.HOME)
+    label                   = models.CharField(max_length=50, blank=True, help_text="Custom label for this address (e.g., 'Mom's House')"
+    )
     is_default              = models.BooleanField(default=False)
-    created_at              = models.DateTimeField(auto_now_add=True)
-    updated_at              = models.DateTimeField(auto_now=True)
     
     class Meta:
         db_table = 'user_addresses'
+        verbose_name = 'User Address'
+        verbose_name_plural = 'User Addresses'
         constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'address'],
+                name='unique_user_address'
+            ),
             models.UniqueConstraint(
                 fields=['user'],
                 condition=models.Q(is_default=True, is_active=True),
                 name='unique_default_address_per_user'
             )
         ]
+        indexes = [
+            models.Index(fields=['user', 'is_active'], name='user_address_active_idx'),
+            models.Index(fields=['user', 'is_default'], name='user_address_default_idx'),
+        ]
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.address_type.title()}: {self.address.city}"
+    
+    def save(self, *args, **kwargs):
+        """Override save to handle default address logic"""
+        if self.is_default:
+            # Remove default from other addresses
+            UserAddress.objects.filter(
+                user=self.user, 
+                is_default=True, 
+                is_active=True
+            ).exclude(id=self.id).update(is_default=False)
+        
+        super().save(*args, **kwargs)
