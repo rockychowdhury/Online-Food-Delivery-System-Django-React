@@ -1,19 +1,21 @@
 import jwt
+import logging
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from django.contrib.auth import get_user_model
+from apps.common.utils.responses import ResponseMessages
+
+logger = logging.getLogger(__name__)
+User = get_user_model()
+
 
 class JWTCookieAuthentication(BaseAuthentication):
     """Custom JWT authentication using cookies"""
     
     def authenticate(self, request):
-        """
-        Extract JWT from cookie and authenticate user
-        """
-        # Get access token from cookie
+        """ Extract JWT from cookie and authenticate user """
         access_token = request.COOKIES.get('access_token')
         
         if not access_token:
@@ -26,29 +28,33 @@ class JWTCookieAuthentication(BaseAuthentication):
                 settings.SECRET_KEY,
                 algorithms=['HS256']
             )
-            User = get_user_model()
             user = User.objects.get(id=payload['user_id'])
             
             if not user.is_active:
-                raise AuthenticationFailed('User account is disabled.')
+                logger.warning(f"Disabled user attempted login: {user.email}")
+                raise AuthenticationFailed(ResponseMessages.ACCOUNT_DISABLED)
                 
             return (user, access_token)
             
         except jwt.ExpiredSignatureError:
             # Try to refresh token automatically
+            logger.info("Access token expired, attempting refresh")
             refresh_token = request.COOKIES.get('refresh_token')
             if refresh_token:
                 return self._refresh_token(request, refresh_token)
-            raise AuthenticationFailed('Access token has expired.')
+            raise AuthenticationFailed(ResponseMessages.TOKEN_EXPIRED)
             
         except jwt.InvalidTokenError:
-            raise AuthenticationFailed('Invalid access token.')
+            logger.warning("Invalid access token provided")
+            raise AuthenticationFailed(ResponseMessages.TOKEN_INVALID)
             
         except User.DoesNotExist:
-            raise AuthenticationFailed('User not found.')
+            logger.error("User not found for valid token")
+            raise AuthenticationFailed(ResponseMessages.USER_NOT_FOUND)
             
         except Exception as e:
-            raise AuthenticationFailed('Authentication failed.')
+            logger.error(f"Authentication error: {str(e)}")
+            raise AuthenticationFailed(ResponseMessages.AUTHENTICATION_FAILED)
 
     def _refresh_token(self, request, refresh_token):
         """Attempt to refresh expired access token"""
@@ -60,32 +66,38 @@ class JWTCookieAuthentication(BaseAuthentication):
                 algorithms=['HS256']
             )
             
-            User = get_user_model()
             user = User.objects.get(id=refresh_payload['user_id'])
             
             if not user.is_active:
-                raise AuthenticationFailed('User account is disabled.')
+                raise AuthenticationFailed(ResponseMessages.ACCOUNT_DISABLED)
             
             # Generate new access token
             new_access_token = self._generate_access_token(user)
             
             # Set new access token in response (will be handled by middleware)
             request._new_access_token = new_access_token
-            
+            logger.info(f"Token refreshed for user: {user.email}")
+
             return (user, new_access_token)
             
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            raise AuthenticationFailed('Refresh token is invalid or expired.')
+            logger.warning("Invalid or expired refresh token")
+            raise AuthenticationFailed(ResponseMessages.TOKEN_INVALID)
         except User.DoesNotExist:
-            raise AuthenticationFailed('User not found.')
+            logger.error("User not found for refresh token")
+            raise AuthenticationFailed(ResponseMessages.USER_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Token refresh error: {str(e)}")
+            raise AuthenticationFailed(ResponseMessages.TOKEN_REFRESH_FAILED)
 
     def _generate_access_token(self, user):
         """Generate new access token"""
         payload = {
             'user_id': str(user.id),
-            'username': user.username,
-            'exp': datetime.now() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_LIFETIME),
+            'email': user.email,
+            'exp': datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_LIFETIME),
             'iat': datetime.now(),
+            'type': 'access'
         }
         
         return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
@@ -99,10 +111,10 @@ class AuthenticationService:
         """Authenticate user with email/password"""
         user = authenticate(email=email, password=password)
         if not user:
-            return None, "Invalid credentials"
+            return None, ResponseMessages.INVALID_CREDENTIALS
             
         if not user.is_active:
-            return None, "Account is disabled"
+            return None, ResponseMessages.ACCOUNT_DISABLED
             
         return user, None
 
@@ -112,8 +124,9 @@ class AuthenticationService:
         access_payload = {
             'user_id': str(user.id),
             'email': user.email,
-            'exp': datetime.now() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_LIFETIME),
-            'iat': datetime.now(),
+            'role': user.get_active_role().role.name if user.get_active_role() else None,
+            'exp': datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_LIFETIME),
+            'iat': datetime.utcnow(),
             'type': 'access'
         }
         
@@ -121,12 +134,12 @@ class AuthenticationService:
             'user_id': str(user.id),
             'exp': datetime.now() + timedelta(days=settings.JWT_REFRESH_TOKEN_LIFETIME),
             'iat': datetime.now(),
-            'type': 'refresh'
+            'type': 'refresh',
         }
         
         access_token = jwt.encode(access_payload, settings.SECRET_KEY, algorithm='HS256')
         refresh_token = jwt.encode(refresh_payload, settings.SECRET_KEY, algorithm='HS256')
-        
+        logger.info(f"Token pair generated for user: {user.email}")
         return access_token, refresh_token
 
     @staticmethod
@@ -168,19 +181,21 @@ class AuthenticationService:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
             
             if payload.get('type') != token_type:
-                return None, "Invalid token type"
-                
-            User = get_user_model()
+                return None, ResponseMessages.TOKEN_INVALID
+            
             user = User.objects.get(id=payload['user_id'])
             
             if not user.is_active:
-                return None, "User account is disabled"
+                return None, ResponseMessages.ACCOUNT_DISABLED
                 
             return user, None
             
         except jwt.ExpiredSignatureError:
-            return None, "Token has expired"
+            return None, ResponseMessages.TOKEN_EXPIRED
         except jwt.InvalidTokenError:
-            return None, "Invalid token"
+            return None, ResponseMessages.TOKEN_INVALID
         except User.DoesNotExist:
-            return None, "User not found"
+            return None, ResponseMessages.USER_NOT_FOUND
+        except Exception as e:
+            logger.error(f"Token validation error: {str(e)}")
+            return None, ResponseMessages.TOKEN_VALIDATION_FAILED
