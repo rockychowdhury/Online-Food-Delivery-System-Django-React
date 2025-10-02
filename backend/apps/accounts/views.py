@@ -1,46 +1,56 @@
+import logging
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny,IsAuthenticated
-from .authentication import AuthenticationService
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-from .serializers import UserRegistrationSerializer, UserUpdateSerializer
+from apps.common.utils import APIResponse, ResponseMessages
+from .authentication import AuthenticationService
+from .serializers import (
+    UserRegistrationSerializer, 
+    UserUpdateSerializer, 
+    UserProfileSerializer,
+    PasswordChangeSerializer
+)
+
+logger = logging.getLogger(__name__)
 
 class LoginView(APIView):
     """User login with JWT cookie authentication"""
     permission_classes = [AllowAny]
     
     def post(self, request):
-        email = request.data.get('email')
+        email = request.data.get('email', '').strip().lower()
         password = request.data.get('password')
         
         if not email or not password:
-            return Response({
-                'error': 'Credentials not provided'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return APIResponse.error(
+                message=ResponseMessages.MISSING_CREDENTIALS,
+                error_code="MISSING_CREDENTIALS"
+            )
         
         # Authenticate user
         user, error = AuthenticationService.authenticate_user(email, password)
         
         if error:
-            return Response({
-                'error': error
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            return APIResponse.error(
+                message=error,
+                error_code="AUTHENTICATION_FAILED",
+                status_code=status.HTTP_401_UNAUTHORIZED
+            )
         
         # Generate tokens
         access_token, refresh_token = AuthenticationService.generate_token_pair(user)
         
-        response_data = {
-            'message': 'Login successful',
-            'user': {
-                'id': str(user.id),
-                'email': user.email,
-            }
+        user_data = {
+            'id': str(user.id),
+            'email': user.email,
+            'full_name': user.get_full_name(),
+            'is_verified': user.is_verified,
         }
         
-        response = Response(response_data, status=status.HTTP_200_OK)
+        response = APIResponse.success(message=ResponseMessages.LOGIN_SUCCESS,data=user_data)
         
         # Set authentication cookies
         response = AuthenticationService.set_auth_cookies(response, access_token, refresh_token)
@@ -52,9 +62,10 @@ class LogoutView(APIView):
     """User logout - clear cookies"""
     
     def post(self, request):
-        response_data = {'message': 'Logout successful'}
-        response = Response(response_data, status=status.HTTP_200_OK)
-        
+        if request.user and hasattr(request.user, 'email'):
+            logger.info(f"User logged out: {request.user.email}")
+
+        response = APIResponse.success(message=ResponseMessages.LOGOUT_SUCCESS)
         # Clear authentication cookies
         response = AuthenticationService.clear_auth_cookies(response)
         
@@ -69,116 +80,126 @@ class RefreshTokenView(APIView):
         refresh_token = request.COOKIES.get('refresh_token')
         
         if not refresh_token:
-            return Response({
-                'error': 'Refresh token not found'
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            return APIResponse.error(
+                message="Refresh token not found",
+                error_code="REFRESH_TOKEN_MISSING",
+                status_code=status.HTTP_401_UNAUTHORIZED
+            )
         
         # Validate refresh token
         user, error = AuthenticationService.validate_token(refresh_token, 'refresh')
         
         if error:
-            return Response({
-                'error': error
-            }, status=status.HTTP_401_UNAUTHORIZED)
+            return APIResponse.error(
+                message=error,
+                error_code="REFRESH_TOKEN_INVALID",
+                status_code=status.HTTP_401_UNAUTHORIZED
+            )
         
         # Generate new token pair
         access_token, new_refresh_token = AuthenticationService.generate_token_pair(user)
         
-        response_data = {
-            'message': 'Tokens refreshed successfully'
-        }
-        
-        response = Response(response_data, status=status.HTTP_200_OK)
+        response = APIResponse.success(message=ResponseMessages.TOKEN_REFRESHED)
         
         # Set new authentication cookies
         response = AuthenticationService.set_auth_cookies(response, access_token, new_refresh_token)
-        
+
+        logger.info(f"Tokens refreshed for user: {user.email}")
         return response
 
 
 class ProfileView(APIView):
+    """User profile management"""
     permission_classes =[IsAuthenticated]
     
     def get(self, request):
-        user = request.user
-        active_role = user.get_active_role()
-        
-        user_data = {
-            'id': str(user.id),
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'phone': user.phone,
-            'role': {
-                'name': active_role.role.name,
-                'display_name': active_role.role.display_name,
-                'assigned_at': active_role.assigned_at,
-                'expires_at': active_role.expires_at,
-            } if active_role else None,
-        }
-        
-        return Response(user_data, status=status.HTTP_200_OK)
+        """Get user profile"""
+        serializer = UserProfileSerializer(request.user)
+
+        return APIResponse.success(
+            message=ResponseMessages.PROFILE_RETRIEVED,
+            data=serializer.data
+        )
     
     def patch(self, request):
-        user= request.user
-        serializer = UserUpdateSerializer(user, data = request.data, partial = True)
+        """Update user profile"""
+        serializer = UserUpdateSerializer(
+            request.user, 
+            data=request.data, 
+            partial=True
+        )
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': 'Profile updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            logger.info(f"Profile updated for user: {request.user.email}")
+            return APIResponse.success(
+                message=ResponseMessages.PROFILE_UPDATED,
+                data=serializer.data
+            )
+        return APIResponse.error(
+            message=ResponseMessages.VALIDATION_ERROR,
+            errors=serializer.errors,
+            error_code="VALIDATION_ERROR"
+        )
 
 class UserRegistrationView(APIView):
+    """User registration"""
     permission_classes = [AllowAny]
+
     def post(self, request, *args, **kwargs):
         serializer = UserRegistrationSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
+
+        if serializer.is_valid():
             user = serializer.save()
-        except Exception as e:
-            return Response(
-                {"detail": "An error occurred during user creation. Please try again later."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            logger.info(f"New user registered: {user.email}")
+
+            # TODO: Send verification email
+
+            response_data = {
+                "id": str(user.id),
+                "email": user.email,
+                "full_name": user.get_full_name(),
+            }
+            return APIResponse.success(
+                message=ResponseMessages.REGISTRATION_SUCCESS,
+                data=response_data,
+                status_code=status.HTTP_201_CREATED
             )
         
-        response_data = {
-            "message": "User created successfully.",
-            "user": {
-                "id": user.id,
-                "email": user.email
-            },
-        }
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        return APIResponse.error(
+            message=ResponseMessages.VALIDATION_ERROR,
+            errors=serializer.errors,
+            error_code="REGISTRATION_VALIDATION_ERROR"
+        )
 
 
 class PasswordChangeView(APIView):
+    """Change user password"""
     permission_classes = [IsAuthenticated]
 
     def patch(self, request):
+        serializer = PasswordChangeSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=ResponseMessages.VALIDATION_ERROR,
+                errors=serializer.errors,
+                error_code="VALIDATION_ERROR"
+            )
+
         user = request.user
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
 
         if not user.check_password(old_password):
-            return Response(
-                {"error": "The old password is incorrect."},
-                status=status.HTTP_400_BAD_REQUEST
+            return APIResponse.error(
+                message=ResponseMessages.OLD_PASSWORD_INCORRECT,
+                error_code="OLD_PASSWORD_INCORRECT"
             )
         
-        try:
-            validate_password(new_password,user)
-        except ValidationError as e:
-            return Response(
-                {"error": e.messages},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         user.set_password(new_password)
         user.save()
 
-        return Response(
-            {"message": "Password updated successfully."},
-            status=status.HTTP_200_OK
-        )
+        logger.info(f"Password changed for user: {user.email}")
 
+        return APIResponse.success(message=ResponseMessages.PASSWORD_CHANGED)
 
