@@ -48,7 +48,7 @@ class User(AbstractUser, UUIDMixin, TimestampMixin):
 
     def get_active_role(self):
         """Get the user's primary active role"""
-        return self.user_role.filter(is_active=True).first()
+        return self.user_roles.filter(is_active=True).first()
     
     def get_full_name(self):
         """Return the user's full name"""
@@ -66,10 +66,10 @@ class Role(BaseModel):
 
     class RoleName(models.TextChoices):
         SUPER_ADMIN         = 'SUPER_ADMIN', 'Super Admin'
-        SYSTEM_STAFF        = 'SYSTEM_STAFF', 'System Staff'
-        RESTAURANT_OWNER    = 'RESTAURANT_OWNER', 'Restaurant Owner'
+        # SYSTEM_STAFF        = 'SYSTEM_STAFF', 'System Staff'
+        RESTAURANT_ADMIN    = 'RESTAURANT_ADMIN', 'Restaurant Admin'
         BRANCH_MANAGER      = 'BRANCH_MANAGER', 'Branch Manager'
-        BRANCH_STAFF        = 'BRANCH_STAFF', 'Branch Staff'
+        # BRANCH_STAFF        = 'BRANCH_STAFF', 'Branch Staff'
         CUSTOMER            = 'CUSTOMER', 'Customer'
         DELIVERY_PARTNER    = 'DELIVERY_PARTNER', 'Delivery Partner'
 
@@ -122,3 +122,57 @@ class UserRole(BaseModel):
     
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.role.name}"
+
+class Permission(BaseModel):
+    """Permission definitions"""
+    
+    RESOURCE_TYPES = [
+        ('RESTAURANT', 'Restaurant'),
+        ('BRANCH', 'Branch'),
+        ('USER_PROFILE', 'User Profile'),
+        ('MENU', 'Menu'),
+        ('FOOD_ITEMS', 'Food Items'),
+        ('ORDERS', 'Orders'),
+        ('RATINGS', 'Ratings'),
+        ('ADDRESS', 'Address'),
+    ]
+    
+    ACTIONS = [
+        ('CREATE', 'Create'),
+        ('READ', 'Read'),
+        ('UPDATE', 'Update'),
+        ('DELETE', 'Delete'),
+    ]
+    
+    name = models.CharField(max_length=100, unique=True)
+    resource_type = models.CharField(max_length=50, choices=RESOURCE_TYPES)
+    action = models.CharField(max_length=20, choices=ACTIONS)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ['resource_type', 'action']
+
+    def __str__(self):
+        return f"{self.resource_type}.{self.action}"
+
+
+class RolePermission(BaseModel):
+    """Many-to-many relationship between roles and permissions with access levels"""
+    
+    ACCESS_LEVELS = [
+        ('FULL', 'Full Access'),
+        ('LIMITED', 'Limited Access'),
+        ('READ_ONLY', 'Read Only'),
+        ('NONE', 'No Access'),
+    ]
+    
+    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='permissions')
+    permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
+    access_level = models.CharField(max_length=20, choices=ACCESS_LEVELS)
+    conditions = models.JSONField(default=dict, blank=True)  # Store additional conditions
+
+    class Meta:
+        unique_together = ['role', 'permission']
+
+    def __str__(self):
+        return f"{self.role.name} - {self.permission.name} ({self.access_level})"
