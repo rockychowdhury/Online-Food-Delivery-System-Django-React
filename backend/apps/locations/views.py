@@ -1,23 +1,17 @@
-#TODO: review and understand the code
-
-
-
 
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
-from django.shortcuts import get_object_or_404
 from rest_framework import status
 
 from apps.common.utils import APIResponse, ResponseMessages
-from apps.common.utils.permissions import IsOwner
-from .models import Country, Address, UserAddress
+from apps.common.permissions import IsObjectOwnerOrRolePermission,IsAuthenticatedAndVerified
+from .models import Country, UserAddress
 from .serializers import CountrySerializer, AddressSerializer, UserAddressSerializer
 
 
 class CountryListView(APIView):
     """List all countries"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedAndVerified]
     
     def get(self, request):
         countries = Country.objects.filter(is_active=True).order_by('country_name')
@@ -31,7 +25,7 @@ class CountryListView(APIView):
 
 class AddressListCreateView(APIView):
     """List user addresses and create new ones"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedAndVerified]
     
     def get(self, request):
         """Get user's addresses"""
@@ -89,7 +83,7 @@ class AddressListCreateView(APIView):
 
 class AddressDetailView(APIView):
     """Retrieve, update, delete specific address"""
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticatedAndVerified, IsObjectOwnerOrRolePermission]
     
     def get_object(self, pk, user):
         """Get user address object"""
@@ -112,6 +106,8 @@ class AddressDetailView(APIView):
             data=serializer.data
         )
     
+
+    #TODO: review and understand the code
     def patch(self, request, pk):
         """Update specific address"""
         user_address = self.get_object(pk, request.user)
