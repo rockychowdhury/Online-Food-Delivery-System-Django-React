@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.db import connection
 from apps.common.utils import APIResponse
-from time import timezone
+from django.utils import timezone
 
 class HealthCheckView(APIView):
     """Health check endpoint for monitoring"""
