@@ -7,8 +7,10 @@ User = get_user_model()
 
 class Country(BaseModel):
     """Country model for address management"""
-    country_name            = models.CharField(max_length=100, unique=True)
-    country_code            = models.CharField(max_length=10, unique=True)
+    name                    = models.CharField(max_length=100, unique=True)
+    code                    = models.CharField(max_length=10, unique=True)
+    currency                = models.CharField(max_length=10)
+    timezone                = models.CharField(max_length=50)
 
     class Meta:
         db_table = "countries"
@@ -16,10 +18,15 @@ class Country(BaseModel):
         verbose_name_plural = "Countries"
 
         indexes = [
-            models.Index(fields=['country_code'], name='country_code_idx'),
+            models.Index(fields=['code'], name='code_idx'),
         ]
     def __str__(self):
-        return f"{self.country_name} ({self.country_code})"
+        return f"{self.name} ({self.code})"
+
+class City(models.Model):
+    country = models.ForeignKey(Country, on_delete=models.PROTECT)
+    name = models.CharField(max_length=100)
+
 
 class Address(BaseModel):
     """Address model for location management"""
@@ -27,10 +34,9 @@ class Address(BaseModel):
     street_address          = models.CharField(max_length=255)
     apartment_number        = models.CharField(max_length=50, blank=True)
 
-    city                    = models.CharField(max_length=100, db_index=True)
+    city                    = models.ForeignKey(City, on_delete=models.PROTECT, related_name='addresses')
     state                   = models.CharField(max_length=100)
     postal_code             = models.CharField(max_length=20)
-    country                 = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='addresses')
     
     # Location coordinates
     latitude                = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True,help_text="Latitude coordinate for precise location")
@@ -64,14 +70,14 @@ class Address(BaseModel):
         address_parts.append(street_line)
         
         # City, State Postal Code
-        locality_line = f"{self.city}, {self.state}"
+        locality_line = f"{self.city.name}, {self.state}"
         if self.postal_code:
             locality_line += f" {self.postal_code}"
         address_parts.append(locality_line)
         
         # Country
-        if self.country:
-            address_parts.append(self.country.country_name)
+        if self.city.country:
+            address_parts.append(self.city.country.name)
         
         return ', '.join(address_parts)
 
