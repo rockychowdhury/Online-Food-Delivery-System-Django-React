@@ -95,8 +95,8 @@ class JWTCookieAuthentication(BaseAuthentication):
         payload = {
             'user_id': str(user.id),
             'email': user.email,
-            'exp': datetime.utcnow() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_LIFETIME),
-            'iat': datetime.now(),
+            'exp': datetime.utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_LIFETIME),
+            'iat': datetime.utcnow(),
             'type': 'access'
         }
         
