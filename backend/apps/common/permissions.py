@@ -223,7 +223,7 @@
 
 
 from rest_framework.permissions import BasePermission
-from .models import RolePermission
+from ..accounts.models import RolePermission
 
 class IsAuthenticatedAndVerified(BasePermission):
     """Allows access only to authenticated and verified users."""
