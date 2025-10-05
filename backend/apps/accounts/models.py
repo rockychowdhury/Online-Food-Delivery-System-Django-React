@@ -18,7 +18,7 @@ class User(AbstractUser, UUIDMixin, TimestampMixin):
 
     date_of_birth           = models.DateField(blank=True, null=True)
     bio                     = models.TextField(max_length=500, blank=True, null=True)
-    photoURL                = models.URLField(max_length=200, blank=True, null=True, default='https://i.ibb.co.com/3yv72K8q/chef-avatar-icon-vector-32077717.webp')
+    photo_url               = models.URLField(max_length=200, blank=True, null=True, default='https://i.ibb.co.com/3yv72K8q/chef-avatar-icon-vector-32077717.webp')
 
 
     is_phone_verified       = models.BooleanField(default=False)
