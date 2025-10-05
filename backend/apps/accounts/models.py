@@ -5,9 +5,8 @@ from .managers import UserManager,UserRoleManager
 from django.conf import settings
 from apps.common.mixins import BaseModel, UUIDMixin, TimestampMixin
 from apps.common.utils.validators import phone_regex_validator
-from django.contrib.auth import get_user_model
 
-USER = get_user_model()
+
 
 class User(AbstractUser, UUIDMixin, TimestampMixin):
     """Custom user model with email as username field"""
@@ -93,7 +92,7 @@ class Role(BaseModel):
 class UserRole(BaseModel):
     """User role assignment model"""
 
-    user                    = models.ForeignKey(USER, on_delete=models.CASCADE, related_name='user_roles')
+    user                    = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_roles')
     role                    = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     assigned_at             = models.DateTimeField(auto_now_add=True)
