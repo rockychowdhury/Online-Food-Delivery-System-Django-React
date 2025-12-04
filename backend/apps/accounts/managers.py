@@ -11,6 +11,8 @@ class UserManager(BaseUserManager):
             raise ValueError('Email is required')
 
         email = self.normalize_email(email)
+        if 'username' not in extra_fields:
+            extra_fields['username'] = email
         user = self.model(email=email, **extra_fields)
         
         if not password:
