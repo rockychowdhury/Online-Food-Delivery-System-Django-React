@@ -1,0 +1,12 @@
+@import './variables.css';
+
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+* {
+    box_sizing: border-box;
+}
