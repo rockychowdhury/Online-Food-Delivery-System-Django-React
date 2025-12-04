@@ -25,8 +25,10 @@ urlpatterns = [
     path('api/v1/locations/', include('apps.locations.urls')),
 
     #TODO: Uncomment when ready
-    # path('api/v1/restaurants/', include('apps.restaurants.urls')),
-    # path('api/v1/orders/', include('apps.orders.urls')),
-    # path('api/v1/payments/', include('apps.payments.urls')),
-    # path('api/v1/ratings/', include('apps.ratings.urls')),
+    path('api/v1/restaurants/', include('apps.restaurants.urls')),
+    path('api/v1/orders/', include('apps.orders.urls')),
+    path('api/v1/cart/', include('apps.cart.urls')),
+    path('api/v1/delivery/', include('apps.delivery.urls')),
+    path('api/v1/payments/', include('apps.payments.urls')),
+    path('api/v1/ratings/', include('apps.ratings.urls')),
 ]
