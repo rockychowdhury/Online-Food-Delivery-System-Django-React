@@ -20,7 +20,7 @@ A clear breakdown of permissions and responsibilities for each role in the Quick
 ### 👑 Super Admin
 | Resource       | Create | Read | Update | Delete | Special Privileges |
 |----------------|--------|------|--------|--------|--------------------|
-| Restaurant     | ✅     | ✅   | ✅     | ✅     | Platform configuration, Force majeure actions |
+| Restaurant     | ✅     | ✅   | ✅     | ✅     | Platform configuration, Approve/Reject Restaurants |
 | Branch         | ✅     | ✅   | ✅     | ✅     | Geographic expansion management |
 | User Profile   | ✅     | ✅   | ✅     | ✅     | Role assignment, Security audits |
 | Menu           | ✅     | ✅   | ✅     | ✅     | Global menu standardization |
@@ -56,7 +56,7 @@ A clear breakdown of permissions and responsibilities for each role in the Quick
 | Resource       | Create | Read | Update | Delete | Special Privileges |
 |----------------|--------|------|--------|--------|--------------------|
 | Restaurant     | ⚠️     | 🔍   | ⚠️     | ❌     | Branding management |
-| Branch         | ✅     | ✅   | ✅     | ✅     | Expansion & operation control |
+| Branch         | ✅     | ✅   | ✅     | ✅     | Expansion, Assign Branch Managers |
 | Menu           | ✅     | ✅   | ✅     | ✅     | Menu lifecycle management |
 | Food Items     | ✅     | ✅   | ✅     | ✅     | Price & availability control |
 | Orders         | ❌     | ✅   | ⚠️     | ❌     | View analytics, sales data |

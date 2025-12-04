@@ -19,43 +19,43 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 🔗 **[View role based permissions](https://github.com/rockychowdhury/Online-Food-Delivery-System-Django-React/blob/main/docs/Role_Based_Permission.md)**
 
 ### 🔑 1.2 Authentication Features  
-- Custom user model with email 📧  
-- JWT token-based auth via secure cookies 🍪  
-- Role-based access control 🧩  
-- Email verification system ✅  
-- Password reset 🔄  
-- Session security & management 🔐
+- Custom user model with email 📧 ✅
+- JWT token-based auth via secure cookies 🍪 ✅
+- Role-based access control 🧩 ✅
+- Email verification system ✅ ✅
+- Password reset 🔄 ✅
+- Session security & management 🔐 ✅
 
 ---
 
 ## 🏪 2. Restaurant & Branch Management
 
 ### 🏢 2.1 Restaurant Profile Management  
-- Restaurant creation & approval workflow 📝  
-- Info management: name, description, contact ☎️  
-- Status toggle: active/inactive ⚙️  
+- Restaurant creation & approval workflow 📝 ✅
+- Info management: name, description, contact ☎️ ✅
+- Status toggle: active/inactive ⚙️ ✅
 
 ### 🏬 2.2 Branch Management  
-- Multi-branch support 🧷  
-- Location, hours, type (dine-in, delivery, pickup) 🕒  
-- Assign branch manager 👔  
-- CRUD operations & ownership check 🔄  
+- Multi-branch support 🧷 ✅
+- Location, hours, type (dine-in, delivery, pickup) 🕒 ✅
+- Assign branch manager 👔 ✅
+- CRUD operations & ownership check 🔄 ✅  
 
 ---
 
 ## 🍔 3. Menu & Food Item Management
 
 ### 📂 3.1 Menu Structure  
-- Category management (Pizza, Drinks) 🍕🥤  
-- Branch-specific menus 🗂️  
+- Category management (Pizza, Drinks) 🍕🥤 ✅
+- Branch-specific menus 🗂️ ✅
 - Highlight featured items ⭐  
-- Menu availability scheduling 🕒  
+- Menu availability scheduling 🕒 ✅
 
 ### 🍱 3.2 Food Item Management  
-- Add food with name, price, images 📸  
-- Ingredients & allergen info ⚠️  
-- Soft delete & availability toggle ❌  
-- Variants & customization 🧃🍟  
+- Add food with name, price, images 📸 ✅
+- Ingredients & allergen info ⚠️ ✅
+- Soft delete & availability toggle ❌ ✅
+- Variants & customization 🧃🍟 ✅  
 
 ### 🔗 3.3 API Access  
 - Public & admin APIs 🛠️  
@@ -67,9 +67,9 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 ## 🛒 4. Cart & Order Management System
 
 ### 🧺 4.1 Shopping Cart  
-- Add/remove items ➕➖  
-- Quantity & pricing management 🔢  
-- Session-based & persistent carts 🧠  
+- Add/remove items ➕➖ ✅
+- Quantity & pricing management 🔢 ✅
+- Session-based & persistent carts 🧠 ✅
 - Abandonment tracking 📉  
 
 ### 🧾 4.2 Order Processing  
@@ -116,14 +116,14 @@ QuickFood is a comprehensive online food delivery platform that connects custome
 ## 🔎 7. Search, Filter & Sorting
 
 ### 🔍 7.1 Search Functionality  
-- Search by name/location 📍  
+- Search by name/location 📍 ✅
 - Autocomplete & suggestion 📢  
 - Search analytics 📊  
 
 ### ⚙️ 7.2 Filtering & Sorting  
-- Cuisine, price, rating, time ⏳  
-- Sort: Price, Rating, Popularity 📉📈  
-- Full-text search & optimization 🔎  
+- Cuisine, price, rating, time ⏳ ✅
+- Sort: Price, Rating, Popularity 📉📈 ✅
+- Full-text search & optimization 🔎 ✅  
 
 ---
 

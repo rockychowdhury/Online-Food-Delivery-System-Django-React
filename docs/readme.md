@@ -14,6 +14,7 @@ QuickFood/
 │   │   ├── orders/
 │   │   ├── payments/
 │   │   ├── ratings/
+│   │   ├── cart/
 │   │   └── common/
 │   ├── config/
 │   │   ├── __init__.py
@@ -44,8 +45,10 @@ QuickFood/
 
 ## Features
 
-- User authentication and authorization
-- Restaurant browsing and menu management
+- User authentication and authorization (RBAC)
+- Restaurant browsing with advanced search and filtering
+- Menu management with categories and dietary info
+- Shopping cart management
 - Order placement and tracking
 - Secure payment processing
 - Rating and review system

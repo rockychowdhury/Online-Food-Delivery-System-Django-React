@@ -273,27 +273,169 @@ Base URL: `/api/accounts`
 
 ---
 
-## Resource APIs (Draft)
+## Restaurant & Menu Management
 
-### Food
-- `GET api/foods` - Public
-- `GET api/foods/res` - Public
-- `POST api/foods` - RO, BM (Admin, Cu, RS, DP, SS blocked)
-- `PUT api/foods` - RO, BM (Admin, Cu, RS, DP, SS blocked)
-- `PATCH api/foods` - RO, BM, RS (Admin, Cu, DP, SS blocked)
-- `DELETE api/foods` - RO, BM, Admin (Cu, DP, SS, RS blocked)
+Base URL: `/api/v1/restaurants`
 
-### Restaurant
-- `GET api/restaurants` - Public
-- `GET api/restaurants/:id` - Public
-- `GET api/restaurants/branches` - Public
+### 1. Restaurants
+**Endpoint:** `/restaurants/`
 
-### Branch
-- `GET api/branches` - Public
+#### Get Restaurants
+**Method:** `GET`
+**Access:** Public (Approved & Active only), Staff (All)
+**Query Parameters:**
+- `search`: Search by name, description, city, or street address.
+- `ordering`: Sort by `name` or `created_at`.
+- `is_active`: Filter by active status (Staff only).
+- `is_approved`: Filter by approval status (Staff only).
 
-### Order
-- `GET api/orders` - Admin, SS, RO, BM, RS, Cu (DP blocked)
-- `POST api/orders` - RO, BM (Admin, Cu, RS, DP, SS blocked)
-- `PUT api/orders` - RO, BM (Admin, Cu, RS, DP, SS blocked)
-- `PATCH api/orders` - RO, BM, RS (Admin, Cu, DP, SS blocked)
-- `DELETE api/orders` - RO, BM, Admin (Cu, DP, SS, RS blocked)
+**Response (200 OK):**
+```json
+{
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "name": "Pizza Palace",
+            "description": "Best Pizza in town",
+            "logo": "http://example.com/logo.jpg",
+            "is_approved": true,
+            "is_active": true
+        }
+    ]
+}
+```
+
+#### Create Restaurant
+**Method:** `POST`
+**Access:** Authenticated (Owner)
+**Body:**
+```json
+{
+    "name": "New Restaurant",
+    "phone": "1234567890",
+    "email": "contact@restaurant.com",
+    "description": "Description"
+}
+```
+
+#### Approve Restaurant
+**Endpoint:** `/restaurants/{id}/approve/`
+**Method:** `POST`
+**Access:** Admin
+**Body:**
+```json
+{
+    "is_approved": true,
+    "is_active": true
+}
+```
+
+### 2. Branches
+**Endpoint:** `/branches/`
+
+#### Get Branches
+**Method:** `GET`
+**Access:** Public
+**Query Parameters:**
+- `search`: Search by name, restaurant name, or city.
+- `branch_type`: Filter by type (`DINE_IN`, `DELIVERY`, `PICKUP`).
+- `restaurant`: Filter by restaurant ID.
+
+### 3. Menu Items
+**Endpoint:** `/menu-items/`
+
+#### Get Menu Items
+**Method:** `GET`
+**Access:** Public
+**Query Parameters:**
+- `search`: Search by name, description, or category name.
+- `ordering`: Sort by `price` or `name`.
+- `category`: Filter by category ID.
+- `cuisine`: Filter by cuisine ID.
+- `is_vegetarian`: `true`/`false`
+- `is_vegan`: `true`/`false`
+- `is_gluten_free`: `true`/`false`
+- `is_available`: `true`/`false`
+
+**Response (200 OK):**
+```json
+{
+    "count": 10,
+    "results": [
+        {
+            "id": 1,
+            "name": "Veggie Pizza",
+            "price": "15.00",
+            "ingredients": "Cheese, Tomato",
+            "allergens": "Dairy",
+            "is_vegetarian": true
+        }
+    ]
+}
+```
+
+### 4. Categories
+**Endpoint:** `/categories/`
+**Method:** `GET`
+**Access:** Public
+**Description:** List all food categories.
+
+---
+
+## Cart Management
+
+Base URL: `/api/v1/cart`
+
+### 1. Get Cart
+**Endpoint:** `/`
+**Method:** `GET`
+**Access:** Authenticated
+**Description:** Retrieve the current user's cart. Creates one if it doesn't exist.
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "total_price": 30.00,
+    "items": [
+        {
+            "id": 1,
+            "menu_item": 5,
+            "menu_item_name": "Burger",
+            "quantity": 2,
+            "subtotal": 30.00
+        }
+    ]
+}
+```
+
+### 2. Add Item to Cart
+**Endpoint:** `/add/`
+**Method:** `POST`
+**Access:** Authenticated
+**Body:**
+```json
+{
+    "menu_item": 5,
+    "quantity": 1
+}
+```
+
+### 3. Update Item Quantity
+**Endpoint:** `/items/{id}/`
+**Method:** `PATCH`
+**Access:** Authenticated
+**Body:**
+```json
+{
+    "quantity": 3
+}
+```
+
+### 4. Remove Item
+**Endpoint:** `/items/{id}/`
+**Method:** `DELETE`
+**Access:** Authenticated

@@ -14,7 +14,8 @@
 - **Menu**: Branch-specific, time-based menus
 
 ### 🍕 Food & Cuisine
-- **FoodItem**: Detailed food items with pricing & availability
+- **Category**: Menu categories (e.g., Pizza, Drinks)
+- **FoodItem**: Detailed food items with pricing, ingredients, allergens
 - **Cuisines**: Cuisine classification (e.g., Italian, Indian)
 - **Menu_FoodItem**: Links menu to food items
 - **FoodItem_Cuisine**: Links food items to cuisines
@@ -29,6 +30,10 @@
 - **Orders**: Orders per branch
 - **OrderItem**: Individual items per order
 - **Payments**: Associated with OrdersGroup
+
+### 🛍️ Cart System
+- **Cart**: User's shopping cart
+- **CartItem**: Items within the cart linked to MenuItems
 
 ## 🔗 Key Relationships Summary
 
@@ -49,6 +54,10 @@
 | Address → OrdersGroup        | One-to-Many |
 | User → OrdersGroup           | One-to-Many |
 | User → Address               | One-to-Many |
+| User → Cart                  | One-to-One |
+| Cart → CartItem              | One-to-Many |
+| CartItem → FoodItem          | Many-to-One |
+| Category → FoodItem          | One-to-Many |
 
 ## 🏗️ Visual Schema Structure
 
