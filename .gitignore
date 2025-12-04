@@ -1,9 +1,8 @@
 __pycache__/
 *.pyc
 *.db
-.env
-backendenv/
 db.sqlite3
 .vscode/
-*.env
 !.vscode/extensions.json
+.env
+venv/
