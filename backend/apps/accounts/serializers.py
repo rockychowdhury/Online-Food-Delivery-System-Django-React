@@ -44,15 +44,21 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'phone', 'photo_url', 'bio', 'date_of_birth']
+        fields = ['first_name', 'last_name', 'phone', 'photoURL', 'bio', 'date_of_birth']
         extra_kwargs = {
             'first_name': {'required': False},
             'last_name': {'required': False},
             'phone': {'required': False},
-            'photo_url': {'required': False},
+            'photoURL': {'required': False},
             'bio': {'required': False, 'max_length': 500},
             'date_of_birth': {'required': False},
         }
+
+    def update(self, instance, validated_data):
+        """Update user and reset verification if needed"""
+        if 'phone' in validated_data and validated_data['phone'] != instance.phone:
+            instance.is_phone_verified = False
+        return super().update(instance, validated_data)
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for displaying user profile"""
@@ -63,7 +69,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'full_name',
-            'phone', 'photo_url', 'bio', 'date_of_birth',
+            'phone', 'photoURL', 'bio', 'date_of_birth',
             'is_verified', 'is_email_verified', 'is_phone_verified',
             'active_role', 'created_at', 'updated_at'
         ]
@@ -92,3 +98,26 @@ class PasswordChangeSerializer(serializers.Serializer):
         validate_password(value)
         validate_password_strength(value)
         return value
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Serializer for requesting password reset"""
+    email = serializers.EmailField()
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Serializer for confirming password reset"""
+    token = serializers.CharField()
+    uidb64 = serializers.CharField()
+    new_password = serializers.CharField(min_length=8, write_only=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        validate_password_strength(value)
+        return value
+
+class EmailVerificationSerializer(serializers.Serializer):
+    """Serializer for email verification"""
+    token = serializers.CharField(required=True)
+
+class PhoneVerificationSerializer(serializers.Serializer):
+    """Serializer for phone verification"""
+    otp = serializers.CharField(required=True, min_length=6, max_length=6)
