@@ -1,3 +1,4 @@
+@import "tailwindcss";
 @import './variables.css';
 
 body {
@@ -8,5 +9,5 @@ body {
 }
 
 * {
-    box_sizing: border-box;
+    box-sizing: border-box;
 }
