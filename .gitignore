@@ -6,3 +6,6 @@ db.sqlite3
 !.vscode/extensions.json
 .env
 venv/
+backend/logs/*
+node_modules/
+package-lock.json
