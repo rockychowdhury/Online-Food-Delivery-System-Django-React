@@ -1,9 +1,10 @@
 from django.db import models
+from django.conf import settings
 
 class DeliveryPartner(models.Model):
-    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     vehicle_type = models.CharField(max_length=30)
-    rating = models.FloatField(default=0)
+    average_rating = models.FloatField(default=0)
     is_active = models.BooleanField(default=True)
 
 class DeliveryStatus(models.Model):
