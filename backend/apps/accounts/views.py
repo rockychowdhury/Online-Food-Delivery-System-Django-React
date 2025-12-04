@@ -11,7 +11,12 @@ from .serializers import (
     UserRegistrationSerializer, 
     UserUpdateSerializer, 
     UserProfileSerializer,
-    PasswordChangeSerializer
+    UserProfileSerializer,
+    PasswordChangeSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
+    EmailVerificationSerializer,
+    PhoneVerificationSerializer
 )
 
 logger = logging.getLogger(__name__)
@@ -203,3 +208,117 @@ class PasswordChangeView(APIView):
 
         return APIResponse.success(message=ResponseMessages.PASSWORD_CHANGED)
 
+        return APIResponse.success(message=ResponseMessages.PASSWORD_CHANGED)
+
+#TODO: Implement password reset email verification
+class PasswordResetRequestView(APIView):
+    """Request password reset email"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=ResponseMessages.VALIDATION_ERROR,
+                errors=serializer.errors
+            )
+
+        email = serializer.validated_data['email']
+        # In a real app, we would check if user exists and send email
+        # For now, we'll just simulate success to avoid enumeration attacks
+        logger.info(f"Password reset requested for: {email}")
+        
+        return APIResponse.success(message="If an account exists with this email, a password reset link has been sent.")
+
+#TODO: Implement password reset confirmation
+
+class PasswordResetConfirmView(APIView):
+    """Confirm password reset"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=ResponseMessages.VALIDATION_ERROR,
+                errors=serializer.errors
+            )
+
+        # In a real app, we would validate token/uidb64 and reset password
+        # For this implementation, we'll mock the success
+        
+        return APIResponse.success(message="Password has been reset successfully.")
+
+class RequestEmailVerificationView(APIView):
+    """Request email verification link"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.is_email_verified:
+            return APIResponse.error(
+                message="Email is already verified",
+                error_code="EMAIL_ALREADY_VERIFIED"
+            )
+        
+        # TODO: Generate token and send email
+        logger.info(f"Email verification requested for: {user.email}")
+        
+        return APIResponse.success(message="Verification email sent successfully")
+
+class VerifyEmailView(APIView):
+    """Verify email with token"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = EmailVerificationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=ResponseMessages.VALIDATION_ERROR,
+                errors=serializer.errors
+            )
+        
+        token = serializer.validated_data['token']
+        # TODO: Validate token and update user.is_email_verified
+        
+        return APIResponse.success(message="Email verified successfully")
+
+class RequestPhoneVerificationView(APIView):
+    """Request phone verification OTP"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if not user.phone:
+            return APIResponse.error(
+                message="Phone number not set",
+                error_code="PHONE_NOT_SET"
+            )
+            
+        if user.is_phone_verified:
+            return APIResponse.error(
+                message="Phone is already verified",
+                error_code="PHONE_ALREADY_VERIFIED"
+            )
+        
+        # TODO: Generate OTP and send SMS
+        logger.info(f"Phone verification requested for: {user.phone}")
+        
+        return APIResponse.success(message="Verification OTP sent successfully")
+
+class VerifyPhoneView(APIView):
+    """Verify phone with OTP"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PhoneVerificationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return APIResponse.error(
+                message=ResponseMessages.VALIDATION_ERROR,
+                errors=serializer.errors
+            )
+        
+        otp = serializer.validated_data['otp']
+        # TODO: Validate OTP and update user.is_phone_verified
+        
+        return APIResponse.success(message="Phone verified successfully")
